@@ -25,6 +25,7 @@ A JavaFX-based Hotel Management System built as part of a university lab project
 - File I/O for persistence
 
 ## Project Structure
+```
 src/
 ├── main/
 │   ├── java/com/hotel/
@@ -43,6 +44,7 @@ src/
 │       ├── BookingView.fxml
 │       ├── BillingView.fxml
 │       └── styles.css
+```
 
 ## How to Run
 1. Make sure Java and Maven are installed
