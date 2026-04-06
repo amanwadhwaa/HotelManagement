@@ -11,8 +11,14 @@ public class Booking {
     private LocalDate checkIn;
     private LocalDate checkOut;
     private boolean active;
+    private boolean breakfastIncluded;
+    private String specialRequests;
 
     public Booking(int bookingId, String customerName, int roomNumber, String roomType, double pricePerDay, LocalDate checkIn, LocalDate checkOut) {
+        this(bookingId, customerName, roomNumber, roomType, pricePerDay, checkIn, checkOut, false, "");
+    }
+
+    public Booking(int bookingId, String customerName, int roomNumber, String roomType, double pricePerDay, LocalDate checkIn, LocalDate checkOut, boolean breakfastIncluded, String specialRequests) {
         this.bookingId = bookingId;
         this.customerName = customerName;
         this.roomNumber = roomNumber;
@@ -21,6 +27,8 @@ public class Booking {
         this.checkIn = checkIn;
         this.checkOut = checkOut;
         this.active = true;
+        this.breakfastIncluded = breakfastIncluded;
+        this.specialRequests = specialRequests == null ? "" : specialRequests;
     }
 
     public int getBookingId() { return bookingId; }
@@ -31,6 +39,8 @@ public class Booking {
     public LocalDate getCheckIn() { return checkIn; }
     public LocalDate getCheckOut() { return checkOut; }
     public boolean isActive() { return active; }
+    public boolean isBreakfastIncluded() { return breakfastIncluded; }
+    public String getSpecialRequests() { return specialRequests; }
     public void setActive(boolean active) { this.active = active; }
 
     public double getTotalBill() {
@@ -40,7 +50,7 @@ public class Booking {
 
     @Override
     public String toString() {
-        return bookingId + "," + customerName + "," + roomNumber + "," + roomType + "," + pricePerDay + "," + checkIn + "," + checkOut + "," + active;
+        return bookingId + "," + customerName + "," + roomNumber + "," + roomType + "," + pricePerDay + "," + checkIn + "," + checkOut + "," + active + "," + breakfastIncluded + "," + specialRequests.replace(",", " ");
     }
 
     public static Booking fromString(String line) {
@@ -52,7 +62,9 @@ public class Booking {
             parts[3],
             Double.parseDouble(parts[4]),
             LocalDate.parse(parts[5]),
-            LocalDate.parse(parts[6])
+            LocalDate.parse(parts[6]),
+            parts.length > 8 && Boolean.parseBoolean(parts[8]),
+            parts.length > 9 ? parts[9] : ""
         );
         b.setActive(Boolean.parseBoolean(parts[7]));
         return b;

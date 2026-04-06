@@ -20,6 +20,7 @@
         <Label text="All registered guests appear here automatically when a booking is made." style="-fx-text-fill: #8892a4; -fx-font-size: 13px;" HBox.hgrow="ALWAYS"/>
         <Button text="Refresh" onAction="#handleRefresh"/>
         <Button text="Delete Selected Guest" onAction="#handleDeleteCustomer" style="-fx-background-color: #dc2626;"/>
+        <Button text="Export CSV" onAction="#handleExportCsv"/>
     </HBox>
 
     <TableView fx:id="customerTable" VBox.vgrow="ALWAYS">

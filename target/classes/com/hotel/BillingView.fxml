@@ -20,6 +20,7 @@
         <Button text="Refresh" onAction="#handleRefresh"/>
         <Button text="Print Bill" onAction="#handlePrintBill" styleClass="success-btn"/>
         <Button text="Delete Selected Bill" onAction="#handleDeleteBill" style="-fx-background-color: #dc2626;"/>
+        <Button text="Export CSV" onAction="#handleExportCsv"/>
     </HBox>
 
     <TableView fx:id="billingTable" VBox.vgrow="ALWAYS">

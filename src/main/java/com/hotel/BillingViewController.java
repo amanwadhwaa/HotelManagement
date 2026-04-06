@@ -1,5 +1,6 @@
 package com.hotel;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -128,6 +129,30 @@ public class BillingViewController implements Initializable {
         loadBookings();
         billSummaryLabel.setText("Select a booking to see bill details");
         showAlert("Bill record deleted successfully", Alert.AlertType.INFORMATION);
+    }
+
+    @FXML
+    private void handleExportCsv() {
+        try {
+            List<String> headers = List.of("Booking ID", "Customer Name", "Room Number", "Room Type", "Price Per Day", "Check-in", "Check-out", "Total Bill", "Active");
+            List<List<String>> rows = bookingList.stream().map(booking -> List.of(
+                String.valueOf(booking.getBookingId()),
+                booking.getCustomerName(),
+                String.valueOf(booking.getRoomNumber()),
+                booking.getRoomType(),
+                String.format("%.2f", booking.getPricePerDay()),
+                String.valueOf(booking.getCheckIn()),
+                String.valueOf(booking.getCheckOut()),
+                String.format("%.2f", booking.getTotalBill()),
+                String.valueOf(booking.isActive())
+            )).toList();
+
+            if (CsvExportUtil.saveCsv(billingTable.getScene().getWindow(), "billing.csv", headers, rows) != null) {
+                showAlert("Bills exported successfully.", Alert.AlertType.INFORMATION);
+            }
+        } catch (IOException ex) {
+            showAlert("Failed to export bills: " + ex.getMessage(), Alert.AlertType.ERROR);
+        }
     }
 
     private void loadBookings() {

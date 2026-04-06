@@ -1,5 +1,6 @@
 package com.hotel;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -58,6 +59,24 @@ public class CustomerViewController implements Initializable {
         DataStore.saveCustomers(customers);
         handleRefresh();
         showAlert("Guest deleted successfully", Alert.AlertType.INFORMATION);
+    }
+
+    @FXML
+    private void handleExportCsv() {
+        try {
+            List<String> headers = List.of("Name", "Contact Number", "Room Number");
+            List<List<String>> rows = customerList.stream().map(customer -> List.of(
+                customer.getName(),
+                customer.getContactNumber(),
+                String.valueOf(customer.getRoomNumber())
+            )).toList();
+
+            if (CsvExportUtil.saveCsv(customerTable.getScene().getWindow(), "customers.csv", headers, rows) != null) {
+                showAlert("Guests exported successfully.", Alert.AlertType.INFORMATION);
+            }
+        } catch (IOException ex) {
+            showAlert("Failed to export guests: " + ex.getMessage(), Alert.AlertType.ERROR);
+        }
     }
 
     private void showAlert(String message, Alert.AlertType type) {

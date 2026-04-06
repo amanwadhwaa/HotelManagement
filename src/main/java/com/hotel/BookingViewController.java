@@ -1,5 +1,6 @@
 package com.hotel;
 
+import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.List;
@@ -11,6 +12,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TableColumn;
@@ -30,6 +32,10 @@ public class BookingViewController implements Initializable {
     private DatePicker checkInPicker;
     @FXML
     private DatePicker checkOutPicker;
+    @FXML
+    private CheckBox breakfastIncludedBox;
+    @FXML
+    private TextField specialRequestsField;
 
     @FXML
     private TableView<Booking> bookingTable;
@@ -41,6 +47,8 @@ public class BookingViewController implements Initializable {
     private TableColumn<Booking, Integer> roomNoCol;
     @FXML
     private TableColumn<Booking, String> typeCol;
+    @FXML
+    private TableColumn<Booking, Boolean> breakfastCol;
     @FXML
     private TableColumn<Booking, LocalDate> checkInCol;
     @FXML
@@ -62,6 +70,7 @@ public class BookingViewController implements Initializable {
         customerCol.setCellValueFactory(new PropertyValueFactory<>("customerName"));
         roomNoCol.setCellValueFactory(new PropertyValueFactory<>("roomNumber"));
         typeCol.setCellValueFactory(new PropertyValueFactory<>("roomType"));
+        breakfastCol.setCellValueFactory(new PropertyValueFactory<>("breakfastIncluded"));
         checkInCol.setCellValueFactory(new PropertyValueFactory<>("checkIn"));
         checkOutCol.setCellValueFactory(new PropertyValueFactory<>("checkOut"));
         activeCol.setCellValueFactory(new PropertyValueFactory<>("active"));
@@ -77,6 +86,8 @@ public class BookingViewController implements Initializable {
         Integer selectedRoom = availableRoomBox.getValue();
         LocalDate checkIn = checkInPicker.getValue();
         LocalDate checkOut = checkOutPicker.getValue();
+        boolean breakfastIncluded = breakfastIncludedBox.isSelected();
+        String specialRequests = specialRequestsField.getText().trim();
 
         if (customerName.isEmpty() || contact.isEmpty() || selectedRoom == null || checkIn == null || checkOut == null) {
             showAlert("Please fill in all fields.", Alert.AlertType.WARNING);
@@ -106,7 +117,9 @@ public class BookingViewController implements Initializable {
             room.getRoomType(),
             room.getPricePerDay(),
             checkIn,
-            checkOut
+            checkOut,
+            breakfastIncluded,
+            specialRequests
         );
 
         bookings.add(booking);
@@ -126,6 +139,8 @@ public class BookingViewController implements Initializable {
         availableRoomBox.setValue(null);
         checkInPicker.setValue(null);
         checkOutPicker.setValue(null);
+        breakfastIncludedBox.setSelected(false);
+        specialRequestsField.clear();
 
         refreshAvailableRoomBox();
         showAlert("Booking confirmed successfully!", Alert.AlertType.INFORMATION);
@@ -183,6 +198,31 @@ public class BookingViewController implements Initializable {
         bookingTable.refresh();
         refreshAvailableRoomBox();
         showAlert("Booking deleted successfully", Alert.AlertType.INFORMATION);
+    }
+
+    @FXML
+    private void handleExportCsv() {
+        try {
+            List<String> headers = List.of("Booking ID", "Customer Name", "Room Number", "Room Type", "Breakfast Included", "Special Requests", "Price Per Day", "Check-in", "Check-out", "Active");
+            List<List<String>> rows = bookingList.stream().map(booking -> List.of(
+                String.valueOf(booking.getBookingId()),
+                booking.getCustomerName(),
+                String.valueOf(booking.getRoomNumber()),
+                booking.getRoomType(),
+                String.valueOf(booking.isBreakfastIncluded()),
+                booking.getSpecialRequests(),
+                String.format("%.2f", booking.getPricePerDay()),
+                String.valueOf(booking.getCheckIn()),
+                String.valueOf(booking.getCheckOut()),
+                String.valueOf(booking.isActive())
+            )).toList();
+
+            if (CsvExportUtil.saveCsv(bookingTable.getScene().getWindow(), "bookings.csv", headers, rows) != null) {
+                showAlert("Bookings exported successfully.", Alert.AlertType.INFORMATION);
+            }
+        } catch (IOException ex) {
+            showAlert("Failed to export bookings: " + ex.getMessage(), Alert.AlertType.ERROR);
+        }
     }
 
     private void refreshAvailableRoomBox() {

@@ -1,5 +1,6 @@
 package com.hotel;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -67,7 +68,7 @@ public class RoomViewController implements Initializable {
                     setText(null);
                     setStyle(null);
                 } else {
-                    setText(item ? "✅ Available" : "❌ Booked");
+                    setText(item ? "Available" : "Booked");
                     setStyle(item
                         ? "-fx-text-fill: #27ae60; -fx-font-weight: bold;"
                         : "-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
@@ -76,6 +77,7 @@ public class RoomViewController implements Initializable {
         });
 
         roomTable.setItems(roomList);
+        adjustTableHeight(roomList);
         refreshStats();
     }
 
@@ -105,6 +107,7 @@ public class RoomViewController implements Initializable {
             roomNumField.clear();
             typeBox.setValue(null);
             priceField.clear();
+            adjustTableHeight(roomTable.getItems());
             refreshStats();
             showAlert("Room added successfully!", Alert.AlertType.INFORMATION);
         } catch (NumberFormatException ex) {
@@ -115,6 +118,7 @@ public class RoomViewController implements Initializable {
     @FXML
     private void handleShowAll() {
         roomTable.setItems(roomList);
+        adjustTableHeight(roomList);
     }
 
     @FXML
@@ -123,6 +127,7 @@ public class RoomViewController implements Initializable {
             rooms.stream().filter(Room::isAvailable).toList()
         );
         roomTable.setItems(availableRooms);
+        adjustTableHeight(availableRooms);
     }
 
     @FXML
@@ -141,8 +146,28 @@ public class RoomViewController implements Initializable {
         rooms.remove(selectedRoom);
         roomList.remove(selectedRoom);
         DataStore.saveRooms(rooms);
+        adjustTableHeight(roomTable.getItems());
         updateStats();
         showAlert("Room deleted successfully", Alert.AlertType.INFORMATION);
+    }
+
+    @FXML
+    private void handleExportCsv() {
+        try {
+            List<String> headers = List.of("Room Number", "Room Type", "Price Per Day", "Available");
+            List<List<String>> rows = roomList.stream().map(room -> List.of(
+                String.valueOf(room.getRoomNumber()),
+                room.getRoomType(),
+                String.format("%.2f", room.getPricePerDay()),
+                String.valueOf(room.isAvailable())
+            )).toList();
+
+            if (CsvExportUtil.saveCsv(roomTable.getScene().getWindow(), "rooms.csv", headers, rows) != null) {
+                showAlert("Rooms exported successfully.", Alert.AlertType.INFORMATION);
+            }
+        } catch (IOException ex) {
+            showAlert("Failed to export rooms: " + ex.getMessage(), Alert.AlertType.ERROR);
+        }
     }
 
     private void refreshStats() {
@@ -155,6 +180,16 @@ public class RoomViewController implements Initializable {
 
     private void updateStats() {
         refreshStats();
+    }
+
+    private void adjustTableHeight(ObservableList<Room> sourceList) {
+        int rowCount = sourceList == null ? 0 : sourceList.size();
+        double rowHeight = 36;
+        double headerHeight = 30;
+        double minHeight = 140;
+        double maxHeight = 420;
+        double targetHeight = Math.max(minHeight, Math.min(maxHeight, headerHeight + (rowCount * rowHeight)));
+        roomTable.setPrefHeight(targetHeight);
     }
 
     private void showAlert(String message, Alert.AlertType type) {
